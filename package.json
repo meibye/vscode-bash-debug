@@ -1,12 +1,12 @@
 {
     "name": "bash-debug",
-    "displayName": "Bash Debug",
+    "displayName": "Bash 5.x Debug",
     "version": "0.3.9",
-    "publisher": "rogalmic",
-    "description": "A debugger extension for bash scripts (using bashdb).",
+    "publisher": "meibye",
+    "description": "A debugger extension for bash 5.x scripts (using bashdb).",
     "author": {
-        "name": "Michal Rogalinski",
-        "email": "rogalinsky@gmail.com"
+        "name": "Michael Eibye",
+        "email": "michael@eibye.name"
     },
     "license": "MIT",
     "keywords": [
@@ -26,26 +26,21 @@
     "private": true,
     "repository": {
         "type": "git",
-        "url": "https://github.com/rogalmic/vscode-bash-debug.git"
+        "url": "https://github.com/meibye/vscode-bash-debug.git"
     },
     "bugs": {
-        "url": "https://github.com/rogalmic/vscode-bash-debug/issues"
+        "url": "https://github.com/meibye/vscode-bash-debug/issues"
     },
     "badges": [
         {
-            "url": "https://img.shields.io/github/downloads/rogalmic/vscode-bash-debug/latest/total.svg",
-            "href": "https://github.com/rogalmic/vscode-bash-debug/releases/latest",
+            "url": "https://img.shields.io/github/downloads/meibye/vscode-bash-debug/latest/total.svg",
+            "href": "https://github.com/meibye/vscode-bash-debug/releases/latest",
             "description": "Download latest beta release (master branch)"
         },
         {
-            "url": "https://img.shields.io/github/stars/rogalmic/vscode-bash-debug.svg?style=social&label=Stars",
-            "href": "https://github.com/rogalmic/vscode-bash-debug/stargazers",
+            "url": "https://img.shields.io/github/stars/meibye/vscode-bash-debug.svg?style=social&label=Stars",
+            "href": "https://github.com/meibye/vscode-bash-debug/stargazers",
             "description": "Star the project in github"
-        },
-        {
-            "url": "https://img.shields.io/badge/paypal-donate-blue.svg",
-            "href": "https://paypal.me/rogalmic",
-            "description": "Donate some $ to keep project going"
         }
     ],
     "dependencies": {
@@ -63,11 +58,11 @@
         "@typescript-eslint/parser": "^4.15.0",
         "eslint": "^7.20.0",
         "jasmine": "^3.6.4",
-        "ovsx": "^0.1.0-next.a9154dc",
+        "ovsx": "^0.9.2",
         "standard-version": "^9.1.0",
         "ts-node": "^9.1.1",
         "typescript": "^4.1.5",
-        "vsce": "^1.85.0",
+        "@vscode/vsce": "^2.15.0",
         "vscode-debugadapter-testsupport": "1.41.0"
     },
     "scripts": {
@@ -90,6 +85,9 @@
         "breakpoints": [
             {
                 "language": "shellscript"
+            },
+            {
+                "language": "bats"
             }
         ],
         "debuggers": [
@@ -126,7 +124,7 @@
                             },
                             "pathBash": {
                                 "type": "string",
-                                "description": "Specify absolute path to bash. Refer to https://github.com/rogalmic/vscode-bash-debug/blob/master/README.md#usage",
+                                "description": "Specify absolute path to bash. Refer to https://github.com/meibye/vscode-bash-debug/blob/master/README.md#usage",
                                 "default": ""
                             },
                             "pathBashdb": {
@@ -151,7 +149,7 @@
                             },
                             "pathPkill": {
                                 "type": "string",
-                                "description": "Specify absolute path to pkill (on Windows, path in Linux Subsystem). On macOS, please use /usr/bin/pkill instead of /usr/local/bin/pkill, otherwise vscode crashes. see https://github.com/rogalmic/vscode-bash-debug/wiki/macOS:-avoid-use-of--usr-local-bin-pkill for details.",
+                                "description": "Specify absolute path to pkill (on Windows, path in Linux Subsystem). On macOS, please use /usr/bin/pkill instead of /usr/local/bin/pkill, otherwise vscode crashes. see https://github.com/meibye/vscode-bash-debug/wiki/macOS:-avoid-use-of--usr-local-bin-pkill for details.",
                                 "default": "/usr/local/bin/pkill"
                             },
                             "showDebugOutput": {

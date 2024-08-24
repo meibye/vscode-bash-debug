@@ -1,5 +1,8 @@
-# VS Code Bash Debug
+# VS Code Bash 5.x Debug
 A bash debugger GUI frontend based on awesome `bashdb` scripts (bashdb now included in package).
+
+> [!NOTE]
+> This is a fork of rogalmic's [vscode-bash-debug](https://github.com/rogalmic/vscode-bash-debug) extension but updated to support newer bashdb and node module versions.
 
 # Overview
 This is a SIMPLE bashdb debugger frontend. Useful for learning bash shell usage and writing simple scripts.
@@ -49,6 +52,7 @@ For macOS users:
 ## Dependencies
 1. `bash` version `4.0` or later
 2. `cat`, `mkfifo`, `rm`, `pkill`
+3. `bashdb` versions available at
 
 ## Limitations and known problems
 * Use `terminalKind`@`launch.json` set to `integrated` or `external` for interactive scripts (using stdin)
