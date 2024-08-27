@@ -36,7 +36,9 @@ jobs:
 
       # Run install dependencies
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install
+          npm audit fix
 
       # # Build extension
       # - name: Run build
@@ -58,6 +60,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          echo "Building vscode-bash-debug-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}.vsix"
           npx vsce package -o vscode-bash-debug-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}.vsix
 
       #Upload vsix

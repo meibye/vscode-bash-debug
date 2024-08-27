@@ -16,7 +16,7 @@
         "multi-root ready"
     ],
     "engines": {
-        "vscode": "^1.40.0",
+        "vscode": "^1.92.0",
         "node": "^20.10.0"
     },
     "icon": "images/bash-debug-icon.png",
@@ -54,8 +54,8 @@
         "@types/jasmine": "^5.1.4",
         "@types/node": "^22.5.0",
         "@types/vscode": "^1.92.0",
-        "@typescript-eslint/eslint-plugin": "^8.2.0",
-        "@typescript-eslint/parser": "^8.2.0",
+        "@typescript-eslint/eslint-plugin": "^8.3.0",
+        "@typescript-eslint/parser": "^8.3.0",
         "@vscode/vsce": "^3.0.0",
         "eslint": "^9.9.1",
         "jasmine": "^5.2.0",
