@@ -22,7 +22,7 @@
 if [[ $0 == ${BASH_SOURCE[0]} ]] ; then
     dirname=${BASH_SOURCE[0]%/*}
     [[ $dirname == $0 ]] && top_dir='..' || top_dir=${dirname}/..
-    for file in help alias ; do source $top_dir/lib/${file}.sh; done
+    for file in help alias ; do source "$top_dir/lib/${file}.sh"; done
 fi
 
 _Dbg_help_add help \
@@ -78,8 +78,8 @@ function _Dbg_do_help {
 	if [[ -n ${_Dbg_command_help[$dbg_cmd]} ]] ; then
  	    _Dbg_msg_rst "${_Dbg_command_help[$dbg_cmd]}"
 	else
-	    _Dbg_alias_expand $dbg_cmd
-	    dbg_cmd="$expanded_alias"
+	    typeset _Dbg_expanded_alias; _Dbg_alias_expand $dbg_cmd
+	    dbg_cmd="$_Dbg_expanded_alias"
 	    if [[ -n ${_Dbg_command_help[$dbg_cmd]} ]] ; then
  		_Dbg_msg_rst "${_Dbg_command_help[$dbg_cmd]}"
 	    else
@@ -116,11 +116,12 @@ function _Dbg_do_help {
 		esac
 	    fi
 	fi
-	aliases_found=''
+
+	declare _Dbg_aliases_found=''
 	_Dbg_alias_find_aliased "$dbg_cmd"
-	if [[ -n $aliases_found ]] ; then
+	if [[ -n $_Dbg_aliases_found ]] ; then
 	    _Dbg_msg ''
-	    _Dbg_msg "Aliases for $dbg_cmd: $aliases_found"
+	    _Dbg_msg "Aliases for $dbg_cmd: $_Dbg_aliases_found"
 	fi
 	return 2
     fi
@@ -132,7 +133,7 @@ _Dbg_alias_add '?' help
 # Demo it.
 if [[ $0 == ${BASH_SOURCE[0]} ]] ; then
     for file in sort columnize list msg ; do
-	source $top_dir/lib/${file}.sh;
+	source "$top_dir/lib/${file}.sh";
     done
     # source /usr/local/share/bashdb/bashdb-trace
     # _Dbg_debugger

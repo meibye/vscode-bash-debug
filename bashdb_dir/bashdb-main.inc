@@ -20,10 +20,10 @@
 typeset _Dbg_debugger_name='bashdb'
 
 # The shell we are configured to run under.
-typeset _Dbg_shell='/bin/bash'
+typeset _Dbg_shell='/usr/bin/bash'
 
 # The release name we are configured to run under.
-typeset _Dbg_release='4.4-0.94'
+typeset _Dbg_release='5.2-1.1.2'
 
 # Wrapper for debugger called from within bash via bash --debugger
 typeset _Dbg_bashdb_main='/usr/share/bashdb/bashdb-main.inc'

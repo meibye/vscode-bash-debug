@@ -1,7 +1,7 @@
 # -*- shell-script -*-
 # pre.sh - Code common to bashdb and bashdb-trace that has to run first
 #
-#   Copyright (C) 2002-2004, 2008-2012
+#   Copyright (C) 2002-2004, 2008-2012, 2018
 #   Rocky Bernstein <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or

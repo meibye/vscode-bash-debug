@@ -1,8 +1,8 @@
 # -*- shell-script -*-
 # Debugger load SCRIPT command.
 #
-#   Copyright (C) 2002, 2003, 2004, 2005, 2006, 2008, 2010,
-#   2011, 2018 Rocky Bernstein <rocky@gnu.org>
+#   Copyright (C) 2002-2006, 2008, 2010-2011, 2018-2019 Rocky
+#   Bernstein <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU General Public License as
@@ -20,12 +20,17 @@
 #   MA 02111 USA.
 
 _Dbg_help_add load \
-'**load** SCRIPT
+'**load** *bash-script*
 
-Read in lines of a SCRIPT for use in listing.
+Read in lines of a *bash-script*.
 
 For paths with space characters please use octal escape, e.g.:
-load /some/path\\0400with\\0400spaces/script.sh'
+load /some/path\\0400with\\0400spaces/script.sh
+
+See also:
+---------
+**info files**
+'
 
 _Dbg_do_load() {
 
@@ -34,21 +39,23 @@ _Dbg_do_load() {
     return 1
   fi
 
-  typeset filename="$(_Dbg_unescape_arg "$1")"
-  local  full_filename=$(_Dbg_resolve_expand_filename "$filename")
-  if [ -n "$full_filename" ] && [ -r "$full_filename" ] ; then
+  typeset _Dbg_filename="$(_Dbg_unescape_arg "$1")"
+  typeset _Dbg_full_filename
+  _Dbg_full_filename="$(_Dbg_resolve_expand_filename "$_Dbg_filename")"
+  if [ -n "$_Dbg_full_filename" ] && [ -r "$_Dbg_full_filename" ] ; then
     # Have we already loaded in this file?
-    for file in ${_Dbg_filenames[@]} ; do
-       if [[ $file == $full_filename ]] ; then
-         _Dbg_msg "File $full_filename already loaded."
+    typeset _Dbg_file
+    for _Dbg_file in "${_Dbg_filenames[@]}" ; do
+       if [[ "$_Dbg_file" == "$_Dbg_full_filename" ]] ; then
+         _Dbg_msg "File $_Dbg_full_filename already loaded."
 	 return 2
        fi
     done
 
-    _Dbg_readin "$full_filename"
-    _Dbg_msg "File $full_filename loaded."
+    _Dbg_readin "$_Dbg_full_filename"
+    _Dbg_msg "File $_Dbg_full_filename loaded."
   else
-      _Dbg_errmsg "Couldn't resolve or read $filename"
+      _Dbg_errmsg "Couldn't resolve or read $_Dbg_filename"
       return 3
   fi
   return 0

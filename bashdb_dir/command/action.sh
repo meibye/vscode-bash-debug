@@ -30,12 +30,12 @@ effect.'
 # line number or _Dbg_frame_last_lineno if omitted.  $2 is a
 # condition to test for whether to stop.
 _Dbg_do_action() {
-
-  if (( $# == 0 )) ; then
+  
+  if (( $# == 0 )) ; then 
       _Dbg_list_action
       return 1
   fi
-  if (( $# == 1 )) ; then
+  if (( $# == 1 )) ; then 
       typeset n=$_Dbg_frame_last_lineno
   else
       typeset n=$1

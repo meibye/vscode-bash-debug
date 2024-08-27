@@ -1,8 +1,8 @@
 # -*- shell-script -*-
 # set.sh - debugger settings
 #
-#   Copyright (C) 2002,2003,2006,2007,2008,2010,2011 Rocky Bernstein
-#   <rocky@gnu.org>
+#   Copyright (C) 2002-2003, 2006-2008, 2010-2011, 2018
+#   Rocky Bernstein <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU General Public License as
@@ -62,7 +62,7 @@ _Dbg_do_set() {
 	    return $?
 	    ;;
 	lo | log | logg | loggi | loggin | logging )
-	    _Dbg_cmd_set_logging $@
+	    _Dbg_do_set_logging $@
 	    ;;
 	t|tr|tra|trac|trace|trace-|trace-c|trace-co|trace-com|trace-comm|trace-comma|trace-comman|trace-command|trace-commands )
 	    _Dbg_do_set_trace_commands $@

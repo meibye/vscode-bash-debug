@@ -1,7 +1,7 @@
 # -*- shell-script -*-
 # help.sh - Debugger Help Routines
 #
-#   Copyright (C) 2002-2008, 2010-2012, 2016
+#   Copyright (C) 2002-2008, 2010-2012, 2016, 2023
 #   Rocky Bernstein <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
@@ -44,11 +44,13 @@ function _Dbg_help_add {
 
 # Add help text $3 for in subcommand $1 under key $2
 function _Dbg_help_add_sub {
-    add_command=${4:-1}
+    typeset add_command; add_command=${4:-1}
     (($# != 3)) && (($# != 4))  && return 1
+    typeset -i add_command; add_command=${4:-1}
     eval "_Dbg_command_help_$1[$2]=\"$3\""
     if (( add_command )) ; then
-        eval "_Dbg_debugger_${1}_commands[$2]=\"_Dbg_do_${1}_${2}\""
+	typeset subcmd; subcmd=${2//[-]/_}
+        eval "_Dbg_debugger_${1}_commands[$2]=\"_Dbg_do_${1}_${subcmd}\""
     fi
     return 0
 }
@@ -69,8 +71,8 @@ _Dbg_help_set() {
         typeset -a list
         list=("${!_Dbg_command_help_set[@]}")
         sort_list 0 ${#list[@]}-1
-        for subcmd in ${list[@]}; do
-            _Dbg_help_set $subcmd 1
+        for subcmd in "${list[@]}"; do
+            _Dbg_help_set "$subcmd" 1
         done
         return 0
     fi
@@ -144,6 +146,14 @@ _Dbg_help_set() {
                 _Dbg_msg 'on.'
             fi
             return 0
+            ;;
+        filename-display )
+	    _Dbg_msg_nocr "${label} "
+	    if (( _Dbg_set_basename == 0 )) ; then
+		_Dbg_msg 'basename.'
+	    else
+		_Dbg_msg 'absolute.'
+	    fi
             ;;
         high | highl | highlight )
             _Dbg_msg_nocr \
@@ -242,8 +252,8 @@ _Dbg_help_show() {
         list=("${!_Dbg_command_help_show[@]}")
         sort_list 0 ${#list[@]}-1
         typeset subcmd
-        for subcmd in ${list[@]}; do
-            [[ $subcmd != 'version' ]] && _Dbg_help_show $subcmd 1
+        for subcmd in "${list[@]}"; do
+            [[ $subcmd != 'version' ]] && _Dbg_help_show "$subcmd" 1
         done
         return 0
     fi
@@ -256,7 +266,7 @@ _Dbg_help_show() {
             _Dbg_msg_rst "${_Dbg_command_help_show[$subcmd]}"
             return 0
         else
-            label=$(builtin printf "show %-12s-- " $subcmd)
+            label=$(builtin printf "show %-12s-- " "$subcmd")
         fi
     fi
 
@@ -320,6 +330,12 @@ number of lines to list."
             _Dbg_msg \
                 "${label}Show editing of command lines and edit style."
             ;;
+
+        filename-display )
+            _Dbg_msg \
+                "${label}display filenames as absolute or basename paths."
+            ;;
+
         highlight )
             _Dbg_msg \
                 "${label}Show if we syntax highlight source listings."

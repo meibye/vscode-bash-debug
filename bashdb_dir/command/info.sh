@@ -25,7 +25,7 @@ _Dbg_help_add info '' 1 _Dbg_complete_info
 
 # Load in "info" subcommands
 for _Dbg_file in "${_Dbg_libdir}/command/info_sub/"*.sh ; do
-    source $_Dbg_file
+    source "$_Dbg_file"
 done
 
 # Command completion
@@ -38,6 +38,8 @@ _Dbg_do_info() {
   if (($# > 0)) ; then
       typeset subcmd=$1
       shift
+
+      typeset -i found=0
 
       if [[ -n ${_Dbg_debugger_info_commands[$subcmd]} ]] ; then
           ${_Dbg_debugger_info_commands[$subcmd]} "$@"

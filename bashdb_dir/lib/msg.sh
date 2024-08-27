@@ -1,6 +1,6 @@
 # -*- shell-script -*-
 #
-#   Copyright (C) 2002-2004, 2006, 2008-2009, 2012, 2015 Rocky Bernstein
+#   Copyright (C) 2002-2004, 2006, 2008-2009, 2012, 2015, 2023 Rocky Bernstein
 #   <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
@@ -36,8 +36,8 @@ _Dbg_confirm() {
     _Dbg_confirm_prompt=$1
     typeset _Dbg_confirm_default=${2:-'no'}
     while : ; do
-        if ! read $_Dbg_edit -p "$_Dbg_confirm_prompt" _Dbg_response args \
-            <&$_Dbg_input_desc 2>>$_Dbg_prompt_output ; then
+        if ! read -r $_Dbg_edit -p "$_Dbg_confirm_prompt" _Dbg_response args \
+            <&$_Dbg_input_desc 2>>"$_Dbg_prompt_output" ; then
             break
         fi
 
@@ -69,22 +69,22 @@ _Dbg_confirm() {
 function _Dbg_errmsg {
     typeset -r prefix='**'
     if [[ -n $_Dbg_set_highlight ]] ; then
-        _Dbg_msg "$prefix ${_Dbg_ansi_term_underline}$@${_Dbg_ansi_term_normal}"
+        _Dbg_msg "$prefix ${_Dbg_ansi_term_underline}$*${_Dbg_ansi_term_normal}"
     else
-        _Dbg_msg "$prefix $@"
+        _Dbg_msg "$prefix $*"
     fi
 }
 
 # Print an error message without the ending carriage return
 function _Dbg_errmsg_no_cr {
     typeset -r prefix='**'
-    _Dbg_msg_no_cr "$prefix $@"
+    _Dbg_msg_no_cr "$prefix $*"
 }
 
 # print message to output device
 function _Dbg_msg {
     if (( _Dbg_logging )) ; then
-        builtin echo -e "$@" >>$_Dbg_logfid
+        builtin echo -e "$@" >>$_Dbg_logging_file
     fi
     if (( ! _Dbg_logging_redirect )) ; then
         if [[ -n $_Dbg_tty  ]] && [[ $_Dbg_tty != '&1' ]] ; then
@@ -98,7 +98,7 @@ function _Dbg_msg {
 # print message to output device without a carriage return at the end
 function _Dbg_msg_nocr {
     if (( _Dbg_logging )) ; then
-        builtin echo -n -e "$@" >>$_Dbg_logfid
+        builtin echo -n -e "$@" >>$_Dbg_logging_file
     fi
     if (( ! _Dbg_logging_redirect )) ; then
         if [[ -n $_Dbg_tty  ]] ; then
@@ -120,7 +120,7 @@ function _Dbg_printf_nocr {
     typeset format=$1
     shift
     if (( _Dbg_logging )) ; then
-        builtin printf "$format" "$@" >>$_Dbg_logfid
+        builtin printf "$format" "$@" >>$_Dbg_logging_file
     fi
     if (( ! _Dbg_logging_redirect )) ; then
         if [[ -n $_Dbg_tty ]] ; then
@@ -131,20 +131,35 @@ function _Dbg_printf_nocr {
     fi
 }
 
+# Like _Dbg_msg but does not evaluate escape sequences which are embedded in the arguments
+# print message to output device
+function _Dbg_msg_verbatim {
+    if (( _Dbg_logging )) ; then
+        builtin echo -E "$@" >>$_Dbg_logging_file
+    fi
+    if (( ! _Dbg_logging_redirect )) ; then
+        if [[ -n $_Dbg_tty  ]] && [[ $_Dbg_tty != '&1' ]] ; then
+            builtin echo -E "$@" >>$_Dbg_tty
+        else
+            builtin echo -E "$@"
+        fi
+    fi
+}
+
 typeset _Dbg_dashes='---------------------------------------------------'
 
 # print message to output device
 function _Dbg_section {
     if [[ -n $_Dbg_set_highlight ]] ; then
-        _Dbg_msg "${_Dbg_ansi_term_bold}$@${_Dbg_ansi_term_normal}"
+        _Dbg_msg "${_Dbg_ansi_term_bold}$*${_Dbg_ansi_term_normal}"
     else
-	local -r msg="$@"
+	local -r msg="$*"
         _Dbg_msg "$msg\n${_Dbg_dashes:0:${#msg}}"
     fi
 }
 
 function _Dbg_msg_rst {
-    local -r msg="$@"
+    local -r msg="$*"
     if [[ -n $_Dbg_set_highlight ]] && (( _Dbg_working_term_highlight )) ; then
 	typeset opts="--rst --width=$_Dbg_set_linewidth"
 	typeset highlight_cmd="${_Dbg_libdir}/lib/term-highlight.py"

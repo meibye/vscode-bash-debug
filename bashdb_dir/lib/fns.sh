@@ -1,7 +1,7 @@
 # -*- shell-script -*-
 # fns.sh - Debugger Utility Functions
 #
-#   Copyright (C) 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010, 2011
+#   Copyright (C) 2002-2011 2019 2021
 #   Rocky Bernstein <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
@@ -22,15 +22,15 @@
 typeset -a _Dbg_yn; _Dbg_yn=("n" "y")
 
 # Return $2 copies of $1. If successful, $? is 0 and the return value
-# is in result.  Otherwise $? is 1 and result ''
+# is in _Dbg_result.  Otherwise $? is 1 and _Dbg_result ''
 function _Dbg_copies {
-    result=''
+    _Dbg_result=''
     (( $# < 2 )) && return 1
     typeset -r string="$1"
     typeset -i count=$2 || return 2
     (( count > 0 )) || return 3
-    builtin printf -v result "%${count}s" ' ' || return 3
-    result=${result// /$string}
+    builtin printf -v _Dbg_result "%${count}s" ' ' || return 3
+    _Dbg_result=${_Dbg_result// /$string}
     return 0
 }
 
@@ -58,11 +58,11 @@ function _Dbg_esc_dq {
 # gives syntax errors when this is put in place.
 typeset -a _Dbg_eval_re;
 _Dbg_eval_re=(
-    '^[ \t]*(if|elif)[ \t]+([^;]*)((;[ \t]*then?)?|$)'
-    '^[ \t]*return[ \t]+(.*)$'
-    '^[ \t]*while[ \t]+([^;]*)((;[ \t]*do?)?|$)'
-    '^[ \t]*[A-Za-z_][A-Za-z_0-9_]*[+-]?=(.*$)'
-    "^[ \t]*[A-Za-z_][A-Za-z_0-9_]*\[[0-9]+\][+-]?=(.*\$)"
+    '^[[:blank:]]*(if|elif)[[:blank:]]+([^;]*)((;[[:blank:]]*then?)?|$)'
+    '^[[:blank:]]*return[[:blank:]]+(.*)$'
+    '^[[:blank:]]*while[[:blank:]]+([^;]*)((;[[:blank:]]*do?)?|$)'
+    '^[[:blank:]]*[A-Za-z_][A-Za-z_0-9_]*[+-]?=(.*$)'
+    "^[[:blank:]]*[A-Za-z_][A-Za-z_0-9_]*\[[0-9]+\][+-]?=(.*\$)"
 )
 
 # Removes "[el]if" .. "; then" or "while" .. "; do" or "return .."
@@ -262,4 +262,21 @@ function _Dbg_set_ftrace {
 	  declare -f $opt $func
 	  # _Dbg_msg "Tracing $tmsg for function $func"
   done
+}
+
+# Adapted from
+# https://stackoverflow.com/questions/14525296/bash-check-if-variable-is-array
+function _Dbg_is_readonly_array() {
+    # no argument passed
+    if [[ $# -ne 1 ]]; then
+	return 1
+    fi
+    typeset var=$1
+    # use a variable to avoid having to escape spaces
+    regex="^declare -ar ${var}(=|$)"
+    if [[ $(declare -p "$var" 2> /dev/null) =~ $regex ]]; then
+	return 0
+    else
+	return 1
+    fi
 }

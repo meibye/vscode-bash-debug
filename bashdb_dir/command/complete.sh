@@ -1,6 +1,7 @@
 # complete.sh - gdb-like 'complete' command
 #
-#   Copyright (C) 2010-2011, 2016 Rocky Bernstein <rocky@gnu.org>
+#   Copyright (C) 2010-2011, 2016, 2023 Rocky Bernstein
+#   <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU General Public License as
@@ -20,7 +21,7 @@
 if [[ $0 == ${BASH_SOURCE[0]} ]] ; then
     dirname=${BASH_SOURCE[0]%/*}
     [[ $dirname == $0 ]] && top_dir='..' || top_dir=${dirname}/..
-    for lib_file in help alias ; do source $top_dir/lib/${lib_file}.sh; done
+    for lib_file in help alias ; do source "$top_dir/lib/${lib_file}.sh"; done
 fi
 
 _Dbg_help_add complete \
@@ -31,28 +32,28 @@ Show command completion strings for *prefix-str*
 '
 
 _Dbg_do_complete() {
-    typeset -a args; args=($@)
+    typeset -a _Dbg_args; _Dbg_args=($@)
     _Dbg_matches=()
-    if (( ${#args[@]} == 2 )) ; then
-      _Dbg_subcmd_complete ${args[0]} ${args[1]}
-    elif (( ${#args[@]} == 1 )) ; then
+    if (( ${#_Dbg_args[@]} == 2 )) ; then
+      _Dbg_subcmd_complete ${_Dbg_args[0]} ${_Dbg_args[1]}
+    elif (( ${#_Dbg_args[@]} == 1 )) ; then
 	# FIXME: add in aliases
 	typeset list; list=("${!_Dbg_debugger_commands[@]}")
 	sort_list 0 ${#list[@]}-1
-	cmd="builtin compgen -W \"${list[@]}\" -- ${args[0]}"
-	typeset -a _Dbg_matches=( $(eval $cmd) )
+	_Dbg_cmd="builtin compgen -W \"${list[@]}\" -- ${_Dbg_args[0]}"
+	typeset -a _Dbg_matches=( $(eval $_Dbg_cmd) )
     fi
-    typeset -i i
-    for (( i=0;  i < ${#_Dbg_matches[@]}  ; i++ )) ; do
-      _Dbg_msg ${_Dbg_matches[$i]}
+    typeset -i _Dbg_i
+    for (( i=0;  _Dbg_i < ${#_Dbg_matches[@]}  ; _Dbg_i++ )) ; do
+      _Dbg_msg ${_Dbg_matches[$_Dbg_i]}
     done
 }
 
 # Demo it.
 if [[ $0 == ${BASH_SOURCE[0]} ]] ; then
-    source ${top_dir}/lib/msg.sh
+    source "${top_dir}/lib/msg.sh"
     for _Dbg_file in ${top_dir}/command/{c*,help}.sh ; do
-	source $_Dbg_file
+	    source "$_Dbg_file"
     done
 
     _Dbg_args='complete'

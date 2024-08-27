@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/bash
 # -*- shell-script -*-
 # Top-level debugger program. This program may be initially invoked.
 #
 #   Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-#   2009, 2010, 2011 Rocky Bernstein <rocky@gnu.org>
+#   2009, 2010, 2011, 2019 Rocky Bernstein <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU General Public License as
@@ -31,13 +31,13 @@
 typeset _Dbg_debugger_name='bashdb'
 
 # The shell we are configured to run under.
-typeset _Dbg_shell='/bin/bash'
+typeset _Dbg_shell='/usr/bin/bash'
 
 # The release name we are configured to run under.
-typeset _Dbg_release='4.4-0.94-mod'
+typeset _Dbg_release='5.2-1.1.2'
 
 # Wrapper for debugger called from within bash via bash --debugger
-typeset _Dbg_bashdb_main='@BASHDB_MAIN@'
+typeset _Dbg_bashdb_main=''
 
 # The short shell name. Helps keep code common in bash, zsh, and ksh debuggers.
 typeset _Dbg_shell_name=${_Dbg_shell##*/}  # Equivalent to basename(_Dbg_shell)
@@ -62,14 +62,15 @@ typeset _Dbg_libdir="${prefix}/share/bashdb"
 # supplied over any of the above guesses. Go over options and parse
 # just the library option.
 typeset -xa _Dbg_script_args; _Dbg_script_args=("$@")
+
 typeset -i _Dbg_i
 for ((_Dbg_i=0; _Dbg_i<${#_Dbg_script_args[@]}-1; _Dbg_i++)) ; do
-    typeset arg=${_Dbg_script_args[$_Dbg_i]}
-    if [[ $arg == '-L' || $arg == '--library' ]] ; then
+    typeset _Dbg_script_arg=${_Dbg_script_args[$_Dbg_i]}
+    if [[ $_Dbg_script_arg == '-L' || $_Dbg_script_arg == '--library' ]] ; then
 	((_Dbg_i++))
 	_Dbg_libdir="${_Dbg_script_args[$_Dbg_i]}"
 	break
-    elif [[ $arg == '--' ]] ; then
+    elif [[ $_Dbg_script_arg == '--' ]] ; then
 	# We hit the end of bashdb args
 	break
     fi
@@ -95,8 +96,12 @@ fi
 
 . "${_Dbg_libdir}/bashdb-part2.sh"
 
-typeset BASH_ARGV0="$_Dbg_script_file"
+if [[ -n $_Dbg_script_file ]] ; then
+    # Set $0. This is a new bash 5.0 feature.
+    BASH_ARGV0=$_Dbg_script_file
+fi
+typeset _Dbg_dollar_0=$0
+
 trap '_Dbg_debug_trap_handler 0 "$BASH_COMMAND" "$@"' DEBUG
 set -o functrace
-
 . "$_Dbg_script_file"

@@ -33,7 +33,7 @@ _Dbg_help_add show '' 1 _Dbg_complete_show
 
 # Load in "show" subcommands
 for _Dbg_file in "${_Dbg_libdir}/command/show_sub/"*.sh ; do
-    source $_Dbg_file
+    source "$_Dbg_file"
 done
 
 # Command completion for a condition command
@@ -70,6 +70,11 @@ _Dbg_do_show() {
                 "${label}Show line tracing is" $onoff
             _Dbg_msg \
                 "${label}Show line trace delay is ${_Dbg_linetrace_delay}."
+            ;;
+
+        filename-display )
+            _Dbg_msg \
+                "${label}filename display."
             ;;
 
         lo | log | logg | loggi | loggin | logging )

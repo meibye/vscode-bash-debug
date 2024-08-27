@@ -3,8 +3,8 @@ import {
     DebugSession, LoggingDebugSession,
     InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent,
     Thread, StackFrame, Scope, Source, Breakpoint
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { ChildProcess } from 'child_process';
 import { basename, normalize, join, isAbsolute } from 'path';
 import * as fs from 'fs';
@@ -256,7 +256,7 @@ export class BashDebugSession extends LoggingDebugSession {
         while (await this.onNextDebuggerOutput()) {
             if (this.promptReached(currentOutputLength)) {
                 this.currentBreakpointIds[args.source.path] = [];
-                const breakpoints = new Array<Breakpoint>();
+                const breakpoints = new Array<DebugProtocol.Breakpoint>();
 
                 for (let i = currentOutputLength; i < this.fullDebugOutput.length - 2; i++) {
 

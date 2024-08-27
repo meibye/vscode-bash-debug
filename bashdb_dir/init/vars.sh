@@ -2,7 +2,7 @@
 # vars.sh - Bourne Again Shell Debugger Global Variables
 #
 #   Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009 Rocky Bernstein
-#   2011 <rocky@gnu.org>
+#   2011, 2019 <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU General Public License as
@@ -31,18 +31,7 @@ typeset _Dbg_cur_fn          # current function of debugged program
 # over some initial setup commands, like the initial "source" function
 # of debugged shell script.
 
-typeset -i _Dbg_have_set0=0
-if [[ -r $_Dbg_libdir/builtin/set0 ]] ; then
-  if enable -f $_Dbg_libdir/builtin/set0  set0 >/dev/null 2>&1 ; then
-    _Dbg_have_set0=1
-  fi
-fi
-
-typeset _Dbg_orig_0=$0
-if [[ -n "$_Dbg_script" ]] ; then
-  if ((_Dbg_have_set0)) && [[ -n "$_Dbg_script_file" ]] ; then
-      builtin set0 "$_Dbg_script_file"
-  fi
+if [[ -n $_Dbg_script ]] ; then
   _Dbg_step_ignore=3
 else
   typeset -i _Dbg_n=$#
@@ -52,7 +41,7 @@ fi
 typeset -i _Dbg_need_input=1   # True if we need to reassign input.
 typeset -i _Dbg_brkpt_num=0    # If nonzero, the breakpoint number that we
                                # are currently stopped at.
-typeset last_next_step_cmd='s' # Default is step.
+typeset _Dbg_last_next_step_cmd=''
 typeset _Dbg_last_print=''     # expression on last print command
 typeset _Dbg_last_printe=''    # expression on last print expression command
 
@@ -65,7 +54,7 @@ typeset int_pat='[0-9]*([0-9])'
 typeset _Dbg_signed_int_pat='?([-+])+([0-9])'
 
 # Set tty to use for output.
-if [[ -z "$_Dbg_tty" ]] ; then
+if [[ -z $_Dbg_tty ]] ; then
   typeset -x _Dbg_tty
   _Dbg_tty=$(tty)
   [[ $? != 0 ]] && _Dbg_tty=''

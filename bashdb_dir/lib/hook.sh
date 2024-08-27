@@ -1,7 +1,7 @@
 # -*- shell-script -*-
 # hook.sh - Debugger trap hook
 #
-#   Copyright (C) 2002-2011, 2014, 2017
+#   Copyright (C) 2002-2011, 2014, 2017-2019
 #   Rocky Bernstein <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
@@ -47,6 +47,15 @@ typeset -i _Dbg_inside_skip=0
 # - A set return code 0 continues execution.
 typeset -i _Dbg_continue_rc=-1
 
+# Variable used to check whether BASH_REMATCH was previously set.
+typeset -a _Dbg_bash_rematch=()
+
+# If BASH_REMATCH is set then we'll use _Dbg_last_rematch_command to try
+# to set to on exit of the hook. Note that this presumes that when
+# the value of BASH_REMATCH was noticed to have changed it was because
+# of the current bash command, which might not always be true.
+typeset _Dbg_last_rematch_command=''
+
 # ===================== FUNCTIONS =======================================
 
 # We come here after before statement is run. This is the function named
@@ -87,10 +96,23 @@ _Dbg_debug_trap_handler() {
     # other things.
     _Dbg_set_debugger_entry
 
-    _Dbg_continue_rc=_Dbg_inside_skip
+    ((_Dbg_continue_rc=_Dbg_inside_skip))
 
     # Shift off "RETURN";  we do not need that any more.
     shift
+
+    # Check whether BASH_REMATCH is set and changed.
+    if (( ${#BASH_REMATCH[@]} > 0 )) && [[ "${_Dbg_bash_rematch[@]}" != "${BASH_REMATCH[@]}" ]]; then
+        # Save a copy of the command string to be able to run to restore read-only
+	# variable BASH_REMATCH
+	_Dbg_bash_rematch=${BASH_REMATCH[@]}
+        _Dbg_last_rematch_args=( "$@" )
+        _Dbg_last_rematch_command=$_Dbg_bash_command
+        unset _Dbg_last_rematch_args[0]
+    elif ((!${#BASH_REMATCH[@]} && ${#_Dbg_bash_rematch[@]})); then
+        _Dbg_bash_rematch=()
+        _Dbg_last_rematch_command=''
+    fi
 
     _Dbg_bash_command=$1
     shift
@@ -110,36 +132,36 @@ _Dbg_debug_trap_handler() {
     for (( _Dbg_i=0; _Dbg_i < _Dbg_watch_max ; _Dbg_i++ )) ; do
 	if [ -n "${_Dbg_watch_exp[$_Dbg_i]}" ] \
 	    && [[ ${_Dbg_watch_enable[_Dbg_i]} != 0 ]] ; then
-	    typeset new_val=$(_Dbg_get_watch_exp_eval $_Dbg_i)
-	    typeset old_val=${_Dbg_watch_val[$_Dbg_i]}
-	    if [[ $old_val != $new_val ]] ; then
+	    typeset _Dbg_new_val=$(_Dbg_get_watch_exp_eval $_Dbg_i)
+	    typeset _Dbg_old_val=${_Dbg_watch_val[$_Dbg_i]}
+	    if [[ $_Dbg_old_val != $_Dbg_new_val ]] ; then
 		((_Dbg_watch_count[_Dbg_i]++))
 		_Dbg_msg "Watchpoint $_Dbg_i: ${_Dbg_watch_exp[$_Dbg_i]} changed:"
-		_Dbg_msg "  old value: '$old_val'"
-		_Dbg_msg "  new value: '$new_val'"
-		_Dbg_watch_val[$_Dbg_i]=$new_val
+		_Dbg_msg "  old value: '$_Dbg_old_val'"
+		_Dbg_msg "  new value: '$_Dbg_new_val'"
+		_Dbg_watch_val[$_Dbg_i]=$_Dbg_new_val
 		_Dbg_hook_enter_debugger 'on a watch trigger'
 		return $_Dbg_continue_rc
 	    fi
 	fi
     done
 
-    typeset full_filename
-    full_filename=$(_Dbg_is_file "$_Dbg_frame_last_filename")
-    if [[ -r $full_filename ]] ; then
-	_Dbg_file2canonic[$_Dbg_frame_last_filename]="$full_filename"
+    typeset _Dbg_full_filename
+    _Dbg_full_filename=$(_Dbg_is_file "$_Dbg_frame_last_filename")
+    if [[ -r "$_Dbg_full_filename" ]] ; then
+	_Dbg_file2canonic["$_Dbg_frame_last_filename"]="$_Dbg_full_filename"
     fi
 
     # Run applicable action statement
     if ((_Dbg_action_count > 0)) ; then
-	_Dbg_hook_action_hit "$full_filename"
+	_Dbg_hook_action_hit "$_Dbg_full_filename"
     fi
 
     # Determine if we stop or not.
 
     # Check breakpoints.
     if ((_Dbg_brkpt_count > 0)) ; then
-	if _Dbg_hook_breakpoint_hit "$full_filename"; then
+	if _Dbg_hook_breakpoint_hit "$_Dbg_full_filename"; then
 	    if ((_Dbg_step_force)) ; then
 		typeset _Dbg_frame_previous_file="$_Dbg_frame_last_filename"
 		typeset -i _Dbg_frame_previous_lineno="$_Dbg_frame_last_lineno"
@@ -206,23 +228,23 @@ _Dbg_debug_trap_handler() {
 }
 
 _Dbg_hook_action_hit() {
-    typeset full_filename="$1"
-    typeset lineno=$_Dbg_frame_last_lineno
+    typeset _Dbg_full_filename="$1"
+    typeset _Dbg_lineno=$_Dbg_frame_last_lineno
 
     # FIXME: combine with _Dbg_unset_action
-    typeset -a linenos
-    [[ -z "$full_filename" ]] && return 1
-    eval "linenos=(${_Dbg_action_file2linenos["$full_filename"]})"
-    typeset -a action_nos
-    eval "action_nos=(${_Dbg_action_file2action["$full_filename"]})"
+    typeset -a _Dbg_linenos
+    [[ -z "$_Dbg_full_filename" ]] && return 1
+    eval "_Dbg_linenos=(${_Dbg_action_file2linenos["$_Dbg_full_filename"]})"
+    typeset -a _Dbg_action_nos
+    eval "_Dbg_action_nos=(${_Dbg_action_file2action["$_Dbg_full_filename"]})"
 
     typeset -i _Dbg_i
     # Check action within full_filename
-    for ((_Dbg_i=0; _Dbg_i < ${#linenos[@]}; _Dbg_i++)); do
-	if (( linenos[_Dbg_i] == lineno )) ; then
-	    (( _Dbg_action_num = action_nos[_Dbg_i] ))
+    for ((_Dbg_i=0; _Dbg_i < ${#_Dbg_linenos[@]}; _Dbg_i++)); do
+	if (( _Dbg_linenos[_Dbg_i] == _Dbg_lineno )) ; then
+	    (( _Dbg_action_num = _Dbg_action_nos[_Dbg_i] ))
 	    stmt="${_Dbg_action_stmt[$_Dbg_action_num]}"
-  	    . "${_Dbg_libdir}/dbg-set-d-vars.inc"
+  	    . "${_Dbg_libdir}/set-d-vars.sh"
   	    eval "$stmt"
 	    # We've reset some variables like IFS and PS4 to make eval look
 	    # like they were before debugger entry - so reset them now.
@@ -236,29 +258,29 @@ _Dbg_hook_action_hit() {
 # Return 0 if we are at a breakpoint position or 1 if not.
 # Sets _Dbg_brkpt_num to the breakpoint number found.
 _Dbg_hook_breakpoint_hit() {
-    typeset full_filename="$1"
-    typeset lineno=$_Dbg_frame_last_lineno
+    typeset _Dbg_full_filename="$1"
+    typeset _Dbg_lineno=$_Dbg_frame_last_lineno
 
     # FIXME: combine with _Dbg_unset_brkpt
-    typeset -a linenos
-    [[ -z "$full_filename" ]] && return 1
-    [[ -z "${_Dbg_brkpt_file2linenos["$full_filename"]}" ]] && return 1
-    eval "linenos=(${_Dbg_brkpt_file2linenos["$full_filename"]})"
-    typeset -a brkpt_nos
-    eval "brkpt_nos=(${_Dbg_brkpt_file2brkpt["$full_filename"]})"
-    typeset -i i
+    typeset -a _Dbg_linenos
+    [[ -z "$_Dbg_full_filename" ]] && return 1
+    [[ -z "${_Dbg_brkpt_file2linenos["$_Dbg_full_filename"]}" ]] && return 1
+    eval "_Dbg_linenos=(${_Dbg_brkpt_file2linenos["$_Dbg_full_filename"]})"
+    typeset -a _Dbg_brkpt_nos
+    eval "_Dbg_brkpt_nos=(${_Dbg_brkpt_file2brkpt["$_Dbg_full_filename"]})"
+    typeset -i _Dbg_i
     # Check breakpoints within full_filename
-    for ((i=0; i < ${#linenos[@]}; i++)); do
-	if (( linenos[i] == lineno )) ; then
+    for ((_Dbg_i=0; _Dbg_i < ${#_Dbg_linenos[@]}; _Dbg_i++)); do
+	if (( _Dbg_linenos[_Dbg_i] == _Dbg_lineno )) ; then
 	    # Got a match, but is the breakpoint enabled and condition met?
-	    (( _Dbg_brkpt_num = brkpt_nos[i] ))
+	    (( _Dbg_brkpt_num = _Dbg_brkpt_nos[_Dbg_i] ))
         if ((_Dbg_brkpt_enable[_Dbg_brkpt_num] )); then
 
             if ( eval "((${_Dbg_brkpt_cond[_Dbg_brkpt_num]}))" || eval "${_Dbg_brkpt_cond[_Dbg_brkpt_num]}" ) 2>/dev/null; then
                 return 0
             else
                 _Dbg_msg "Breakpoint: evaluation of '${_Dbg_brkpt_cond[_Dbg_brkpt_num]}' returned false."
-        fi
+            fi
 
 	    fi
 	fi
@@ -272,6 +294,18 @@ _Dbg_hook_enter_debugger() {
     [[ 'noprint' != $2 ]] && _Dbg_print_location_and_command
     _Dbg_process_commands
     _Dbg_set_to_return_from_debugger 1
+    # Try to Persist the user-space value of BASH_REMATCH in debugged
+    # program using _Dbg_last_rematch_command.  Executing the debug
+    # hook annihilated it.  Note this might fail is we didn't capture
+    # _Dbg_last_rematch_command properly.
+    if (( ${#_Dbg_bash_rematch[@]} > 0 )); then
+	# FIXME generalize this and put in a library for eval.
+	set -- "${_Dbg_last_rematch_args[@]}"
+	eval $_Dbg_last_rematch_command
+    elif (( ${#BASH_REMATCH[@]} > 0 )) ; then
+	# Set BASH_REMATCH to ()
+	[[ 'this' =~ 'that' ]]
+    fi
     return $_Dbg_continue_rc
 }
 

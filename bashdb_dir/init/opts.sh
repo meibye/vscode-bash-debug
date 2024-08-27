@@ -1,7 +1,8 @@
 # -*- shell-script -*-
 # debugger command options processing. The bane of programming.
 #
-#   Copyright (C) 2008-2012, 2014-2017 Rocky Bernstein <rocky@gnu.org>
+#   Copyright (C) 2008-2012, 2014-2019, 2021, 2023
+#   Rocky Bernstein <rocky@gnu.org>
 #
 #   This program is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU General Public License as
@@ -129,6 +130,8 @@ _Dbg_parse_options() {
 
     typeset -i _Dbg_o_quiet=0
     typeset -i _Dbg_o_version=0
+    typeset -i _Dbg_highlight_enabled=1
+    typeset OPTLARG OPTLERR OPTLPENDING opt
 
     while getopts_long A:Bc:x:hL:nqTt:Yy:VX opt \
         annotate     required_argument       \
@@ -170,16 +173,18 @@ _Dbg_parse_options() {
 			_Dbg_set_highlight=$OPTLARG
 		    ;;
 		* )
-		    print "Expecting 'dark' or 'light', got \"${OPTLARG}\"" >&2
+		    printf "Expecting 'dark' or 'light', got \"${OPTLARG}\"" >&2
 		    exit 2
 		esac
 
 		if (( ! _Dbg_have_working_pygmentize )) ; then
-                    print "Can't run pygmentize. --highight forced off" >&2
+                    printf "Can't run pygmentize. --highlight forced off" >&2
+		    _Dbg_highlight_enabled=0
 		    _Dbg_set_highlight=''
                 fi
                 ;;
             no-highlight )
+                _Dbg_highlight_enabled=0
                 _Dbg_set_highlight=''   ;;
             init-file )
                 set -x
@@ -226,7 +231,7 @@ _Dbg_parse_options() {
         [[ -n $_Dbg_release ]] ; then
         echo "$_Dbg_shell_name debugger, $_Dbg_debugger_name, release $_Dbg_release"
         printf '
-Copyright 2002-2004, 2006-2012, 2014, 2016-2017 Rocky Bernstein
+Copyright 2002-2004, 2006-2012, 2014, 2016-2019, 2021, 2023 Rocky Bernstein
 This is free software, covered by the GNU General Public License, and you are
 welcome to change it and/or distribute copies of it under certain conditions.
 
@@ -249,25 +254,24 @@ welcome to change it and/or distribute copies of it under certain conditions.
     fi
     unset _Dbg_o_annotate _Dbg_o_version _Dbg_o_quiet
     _Dbg_script_args=("$@")
+
+    if (( _Dbg_have_working_pygmentize )) && (( _Dbg_highlight_enabled )) && [[ -z "$_Dbg_set_highlight" ]] ; then
+        # Honor DARK_BG if already set. If not set, set it.
+        if [[ -z "$DARK_BG" ]] ; then
+        . "${_Dbg_libdir}/init/term-background.sh" >/dev/null
+        fi
+
+        # DARK_BG is now either 0 or 1.
+        # Set _Dbg_set_highlight based on DARK_BG
+        # Note however that options processing has one more chance to
+        # change _Dbg_set_highlight
+        if (( $DARK_BG )); then
+        _Dbg_set_highlight="dark"
+        else
+        _Dbg_set_highlight="light"
+        fi
+    fi
 }
-
-if (( _Dbg_have_working_pygmentize )) && [[ -z "$_Dbg_set_highlight" ]] ; then
-    # Honor DARK_BG if already set. If not set, set it.
-    if [[ -z "$DARK_BG" ]] ; then
-	. "${_Dbg_libdir}/init/term-background.sh" >/dev/null
-    fi
-
-    # DARK_BG is now either 0 or 1.
-    # Set _Dbg_set_highlight based on DARK_BG
-    # Note however that options processing has one more chance to
-    # change _Dbg_set_highlight
-    if (( $DARK_BG )); then
-	_Dbg_set_highlight="dark"
-    else
-	_Dbg_set_highlight="light"
-    fi
-fi
-
 
 # Stand-alone Testing.
 if [[ -n "$_Dbg_dbg_opts_test" ]] ; then
