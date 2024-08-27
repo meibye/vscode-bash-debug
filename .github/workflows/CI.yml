@@ -40,10 +40,6 @@ jobs:
           npm install
           npm audit fix
 
-      # # Build extension
-      # - name: Run build
-      #   run: yarn build
-
       # Run tests
       - name: Run Test
         run: npm run test
@@ -71,14 +67,14 @@ jobs:
           name: vscode-bash-debug
           path: vscode-bash-debug*.vsix
 
-      # Archive test results
-      - name: Archiving test artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.os }}-artifacts
-          path: |
-            test-resources/screenshots/*.png
-          retention-days: 2
+      # # Archive test results
+      # - name: Archiving test artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ matrix.os }}-artifacts
+      #     path: |
+      #       test-resources/screenshots/*.png
+      #     retention-days: 2
 
 
 
