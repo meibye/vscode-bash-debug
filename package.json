@@ -1,7 +1,7 @@
 {
     "name": "bash-debug",
     "displayName": "Bash 5.x Debug",
-    "version": "0.3.10-0",
+    "version": "0.3.10",
     "publisher": "meibye",
     "description": "A debugger extension for bash 5.x scripts (using bashdb).",
     "author": {
