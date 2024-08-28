@@ -1,5 +1,5 @@
 {
-    "name": "bash-debug",
+    "name": "bash-5x-debug",
     "displayName": "Bash 5.x Debug",
     "version": "0.3.10",
     "publisher": "meibye",
@@ -52,7 +52,7 @@
     },
     "devDependencies": {
         "@types/jasmine": "^5.1.4",
-        "@types/node": "^22.5.0",
+        "@types/node": "^22.5.1",
         "@types/vscode": "^1.92.0",
         "@typescript-eslint/eslint-plugin": "^8.3.0",
         "@typescript-eslint/parser": "^8.3.0",
