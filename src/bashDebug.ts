@@ -41,9 +41,9 @@ export class BashDebugSession extends LoggingDebugSession {
     private static THREAD_ID = 42;
     private static END_MARKER = "############################################################";
 
-    private launchArgs: LaunchRequestArguments;
+    private launchArgs!: LaunchRequestArguments;
 
-    private proxyProcess: ChildProcess;
+    private proxyProcess!: ChildProcess;
 
     private currentBreakpointIds = new Map<string, Array<number>>();
     private proxyData = new Map<string, string>();
